@@ -427,7 +427,10 @@ export function attachGatewayWsMessageHandler(params: {
           close(1008, truncateCloseReason(authMessage));
         };
         if (!device) {
-          if (scopes.length > 0) {
+          // When dangerouslyDisableDeviceAuth is enabled and the client authenticated
+          // via shared secret (token/password), trust the client-declared scopes.
+          // This allows cloud deployments to use the Control UI with full operator access.
+          if (scopes.length > 0 && !(disableControlUiDeviceAuth && sharedAuthOk)) {
             scopes = [];
             connectParams.scopes = scopes;
           }

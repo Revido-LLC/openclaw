@@ -703,6 +703,36 @@ describe("gateway server auth/connect", () => {
     }
   });
 
+  test("preserves operator scopes when device auth is disabled and token auth succeeds", async () => {
+    testState.gatewayControlUi = { dangerouslyDisableDeviceAuth: true };
+    testState.gatewayAuth = { mode: "token", token: "secret" };
+    const prevToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+    process.env.OPENCLAW_GATEWAY_TOKEN = "secret";
+    const port = await getFreePort();
+    const server = await startGatewayServer(port);
+    const ws = await openWs(port, { origin: originForPort(port) });
+    const res = await connectReq(ws, {
+      token: "secret",
+      device: null,
+      scopes: ["operator.admin"],
+      client: {
+        id: GATEWAY_CLIENT_NAMES.CONTROL_UI,
+        version: "1.0.0",
+        platform: "web",
+        mode: GATEWAY_CLIENT_MODES.WEBCHAT,
+      },
+    });
+    expect(res.ok).toBe(true);
+
+    // Verify the scopes were preserved by calling a scope-gated method
+    const health = await rpcReq(ws, "health");
+    expect(health.ok).toBe(true);
+
+    ws.close();
+    await server.close();
+    restoreGatewayToken(prevToken);
+  });
+
   test("accepts device token auth for paired device", async () => {
     const { loadOrCreateDeviceIdentity } = await import("../infra/device-identity.js");
     const { approveDevicePairing, getPairedDevice, listDevicePairing } =
