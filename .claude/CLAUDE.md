@@ -41,7 +41,6 @@ User Browser (HTTPS) --> Railway Reverse Proxy --> OpenClaw Gateway (ws://0.0.0.
 | `OPENCLAW_WORKSPACE_DIR`    | `/data/workspace` — agent workspace                          |
 | `OPENCLAW_PRIMARY_MODEL`    | `claude-sonnet-4-5-20250929`                                 |
 | `ANTHROPIC_API_KEY`         | Anthropic API key                                            |
-| `OPENCLAW_GATEWAY_PASSWORD` | Shared secret — gateway password auth (alternative to token) |
 | `PORT`                      | `18789` — must match Railway networking config               |
 
 ### Railway-Specific Files (our additions)
