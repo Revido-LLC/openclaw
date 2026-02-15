@@ -1,0 +1,41 @@
+FROM node:22-bookworm
+
+# Install Bun (required for build scripts)
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
+
+RUN corepack enable
+
+WORKDIR /app
+
+ARG OPENCLAW_DOCKER_APT_PACKAGES=""
+RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
+      apt-get update && \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES && \
+      apt-get clean && \
+      rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
+    fi
+
+COPY . .
+
+# pnpm-lock.yaml is gitignored upstream — present in `railway up` deploys
+# but absent in GitHub auto-deploys. Use --frozen-lockfile when available
+# for reproducibility, fall back to a fresh install when missing.
+RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+
+RUN pnpm build
+# Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
+ENV OPENCLAW_PREFER_PNPM=1
+RUN pnpm ui:build
+
+ENV NODE_ENV=production
+
+RUN chown -R node:node /app
+
+# Railway-specific entrypoint: fix volume permissions then drop to node user.
+# Railway volumes mount as root-owned, but the app runs as non-root for security.
+COPY docker-entrypoint-railway.sh /docker-entrypoint-railway.sh
+RUN chmod +x /docker-entrypoint-railway.sh
+
+ENTRYPOINT ["/docker-entrypoint-railway.sh"]
+CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan", "--port", "18789"]

@@ -1,0 +1,83 @@
+# Copy of .gitignore, minus pnpm-lock.yaml (needed for Docker build)
+# and with CLAUDE.md symlinks excluded (Railway can't handle symlinks)
+
+.git
+node_modules
+**/node_modules/
+.env
+docker-compose.extra.yml
+dist
+**/dist
+# pnpm-lock.yaml — intentionally NOT ignored (required by Dockerfile COPY)
+bun.lock
+bun.lockb
+coverage
+__pycache__/
+*.pyc
+.tsbuildinfo
+.pnpm-store
+.worktrees/
+.DS_Store
+**/.DS_Store
+ui/src/ui/__screenshots__/
+ui/playwright-report/
+ui/test-results/
+
+# Android/iOS/macOS build artifacts
+apps/android/.gradle/
+apps/android/app/build/
+apps/android/.cxx/
+*.bun-build
+apps/macos/.build/
+apps/shared/MoltbotKit/.build/
+**/ModuleCache/
+bin/
+apps/macos/.build-local/
+apps/macos/.swiftpm/
+apps/shared/MoltbotKit/.swiftpm/
+Core/
+apps/ios/*.xcodeproj/
+apps/ios/*.xcworkspace/
+apps/ios/.swiftpm/
+vendor/
+apps/ios/Clawdbot.xcodeproj/
+apps/ios/Clawdbot.xcodeproj/**
+apps/macos/.build/**
+**/*.bun-build
+apps/ios/*.xcfilelist
+
+# Vendor build artifacts
+vendor/a2ui/renderers/lit/dist/
+src/canvas-host/a2ui/*.bundle.js
+src/canvas-host/a2ui/*.map
+.bundle.hash
+
+# fastlane
+apps/ios/fastlane/README.md
+apps/ios/fastlane/report.xml
+apps/ios/fastlane/Preview.html
+apps/ios/fastlane/screenshots/
+apps/ios/fastlane/test_output/
+apps/ios/fastlane/logs/
+apps/ios/fastlane/.env
+apps/ios/*.ipa
+apps/ios/*.dSYM.zip
+apps/ios/*.mobileprovision
+
+# Local files
+.local/
+docs/.local/
+IDENTITY.md
+USER.md
+.tgz
+.idea
+.serena/
+/memory/
+.agent/*.json
+!.agent/workflows/
+/local/
+package-lock.json
+
+# Symlinks (Railway indexer can't follow them)
+CLAUDE.md
+src/gateway/server-methods/CLAUDE.md
