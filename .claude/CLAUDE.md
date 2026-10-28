@@ -34,14 +34,14 @@ User Browser (HTTPS) --> Railway Reverse Proxy --> OpenClaw Gateway (ws://0.0.0.
 
 ### Key Environment Variables
 
-| Variable                    | Purpose                                                      |
-| --------------------------- | ------------------------------------------------------------ |
-| `OPENCLAW_GATEWAY_TOKEN`    | Auth token for WebSocket connections (enter in Control UI)   |
-| `OPENCLAW_STATE_DIR`        | `/data/.openclaw` — persisted config/state                   |
-| `OPENCLAW_WORKSPACE_DIR`    | `/data/workspace` — agent workspace                          |
-| `OPENCLAW_PRIMARY_MODEL`    | `claude-sonnet-4-5-20250929`                                 |
-| `ANTHROPIC_API_KEY`         | Anthropic API key                                            |
-| `PORT`                      | `18789` — must match Railway networking config               |
+| Variable                 | Purpose                                                    |
+| ------------------------ | ---------------------------------------------------------- |
+| `OPENCLAW_GATEWAY_TOKEN` | Auth token for WebSocket connections (enter in Control UI) |
+| `OPENCLAW_STATE_DIR`     | `/data/.openclaw` — persisted config/state                 |
+| `OPENCLAW_WORKSPACE_DIR` | `/data/workspace` — agent workspace                        |
+| `OPENCLAW_PRIMARY_MODEL` | `claude-sonnet-4-5-20250929`                               |
+| `ANTHROPIC_API_KEY`      | Anthropic API key                                          |
+| `PORT`                   | `18789` — must match Railway networking config             |
 
 ### Railway-Specific Files (our additions)
 
