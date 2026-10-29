@@ -3,8 +3,9 @@ import { Routes } from "discord-api-types/v10";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DiscordExecApprovalConfig } from "../../config/types.discord.js";
+import { clearSessionStoreCacheForTest } from "../../config/sessions/store.js";
 import {
   buildExecApprovalCustomId,
   extractDiscordChannelId,
@@ -15,14 +16,20 @@ import {
   type ExecApprovalButtonContext,
 } from "./exec-approvals.js";
 
-const STORE_PATH = path.join(os.tmpdir(), "openclaw-exec-approvals-test.json");
+const storeDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-exec-approvals-test-"));
+const STORE_PATH = path.join(storeDir, "sessions.json");
 
 const writeStore = (store: Record<string, unknown>) => {
   fs.writeFileSync(STORE_PATH, `${JSON.stringify(store, null, 2)}\n`, "utf8");
+  clearSessionStoreCacheForTest();
 };
 
 beforeEach(() => {
   writeStore({});
+});
+
+afterAll(() => {
+  fs.rmSync(storeDir, { recursive: true, force: true });
 });
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────

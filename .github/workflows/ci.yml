@@ -189,6 +189,9 @@ jobs:
     needs: [docs-scope, changed-scope, check]
     if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      OPENCLAW_TEST_VM_FORKS: ${{ matrix.runtime == 'node' && matrix.task == 'test' && '0' || '' }}
+      OPENCLAW_TEST_WORKERS: ${{ matrix.runtime == 'node' && matrix.task == 'test' && '1' || '' }}
     strategy:
       fail-fast: false
       matrix:

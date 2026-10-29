@@ -62,7 +62,7 @@ fi
 INSTALLED_VERSION="$("$CLI_NAME" --version 2>/dev/null | head -n 1 | tr -d '\r')"
 echo "cli=$CLI_NAME installed=$INSTALLED_VERSION expected=$LATEST_VERSION"
 
-if [[ "$INSTALLED_VERSION" != "$LATEST_VERSION" ]]; then
+if [[ "$INSTALLED_VERSION" != "$LATEST_VERSION" && "$INSTALLED_VERSION" != "OpenClaw $LATEST_VERSION" && "$INSTALLED_VERSION" != "OpenClaw $LATEST_VERSION ("*")" ]]; then
   echo "ERROR: expected ${CLI_NAME}@${LATEST_VERSION}, got ${CLI_NAME}@${INSTALLED_VERSION}" >&2
   exit 1
 fi
