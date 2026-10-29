@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../infra/net/ssrf.js";
 import { optimizeImageToPng } from "../media/image-ops.js";
 import { loadWebMedia, loadWebMediaRaw, optimizeImageToJpeg } from "./media.js";
@@ -332,6 +332,13 @@ describe("web media loading", () => {
 });
 
 describe("local media root guard", () => {
+  beforeEach(() => {
+    vi.stubEnv(
+      "OPENCLAW_STATE_DIR",
+      path.join(path.parse(os.tmpdir()).root, "openclaw-test-state"),
+    );
+  });
+
   it("rejects local paths outside allowed roots", async () => {
     // Explicit roots that don't contain the temp file.
     await expect(

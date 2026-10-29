@@ -4,11 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
 
 concurrency:
-  group: install-smoke-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+  group: install-smoke-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   docs-scope:
@@ -27,7 +28,7 @@ jobs:
 
   install-smoke:
     needs: [docs-scope]
-    if: needs.docs-scope.outputs.docs_only != 'true'
+    if: (github.event_name != 'pull_request' || github.event.pull_request.draft != true) && needs.docs-scope.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout CLI
@@ -49,6 +50,9 @@ jobs:
 
       - name: Install pnpm deps (minimal)
         run: pnpm install --ignore-scripts --frozen-lockfile
+
+      - name: Test installer version checks
+        run: node --test scripts/docker/install-sh-smoke/version.test.mjs
 
       - name: Run installer docker tests
         env:

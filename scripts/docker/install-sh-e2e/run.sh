@@ -70,7 +70,7 @@ fi
 echo "==> Verify installed version"
 INSTALLED_VERSION="$(openclaw --version 2>/dev/null | head -n 1 | tr -d '\r')"
 echo "installed=$INSTALLED_VERSION expected=$EXPECTED_VERSION"
-if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
+if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" && "$INSTALLED_VERSION" != "OpenClaw $EXPECTED_VERSION" && "$INSTALLED_VERSION" != "OpenClaw $EXPECTED_VERSION ("*")" ]]; then
   echo "ERROR: expected openclaw@$EXPECTED_VERSION, got openclaw@$INSTALLED_VERSION" >&2
   exit 1
 fi

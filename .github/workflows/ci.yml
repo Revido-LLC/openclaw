@@ -4,12 +4,23 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  draft-pending:
+    name: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true && 'check' || 'Draft validation sentinel' }}
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: |
+          echo '::error::Draft PR: validation is deferred until ready for review.'
+          exit 1
+
   # Detect docs-only changes to skip heavy jobs (test, build, Windows, macOS, Android).
   # Lint and format always run. Fail-safe: if detection fails, run everything.
   docs-scope:
@@ -32,7 +43,7 @@ jobs:
   # Push to main keeps broad coverage.
   changed-scope:
     needs: [docs-scope]
-    if: needs.docs-scope.outputs.docs_only != 'true'
+    if: (github.event_name != 'pull_request' || github.event.pull_request.draft != true) && needs.docs-scope.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     outputs:
       run_node: ${{ steps.scope.outputs.run_node }}
@@ -178,6 +189,9 @@ jobs:
     needs: [docs-scope, changed-scope, check]
     if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      OPENCLAW_TEST_VM_FORKS: ${{ matrix.runtime == 'node' && matrix.task == 'test' && '0' || '' }}
+      OPENCLAW_TEST_WORKERS: ${{ matrix.runtime == 'node' && matrix.task == 'test' && '1' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -224,9 +238,9 @@ jobs:
 
   # Types, lint, and format check.
   check:
-    name: "check"
+    name: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true && 'Draft deferred - check' || 'check' }}
     needs: [docs-scope]
-    if: needs.docs-scope.outputs.docs_only != 'true'
+    if: (github.event_name != 'pull_request' || github.event.pull_request.draft != true) && needs.docs-scope.outputs.docs_only != 'true'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -243,7 +257,7 @@ jobs:
   # Validate docs (format, lint, broken links) only when docs files changed.
   check-docs:
     needs: [docs-scope]
-    if: needs.docs-scope.outputs.docs_changed == 'true'
+    if: (github.event_name != 'pull_request' || github.event.pull_request.draft != true) && needs.docs-scope.outputs.docs_changed == 'true'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -258,12 +272,15 @@ jobs:
         run: pnpm check:docs
 
   secrets:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: false
+
+      - name: Verify CI routing
+        run: node --test scripts/ci-draft-policy.check.mjs
 
       - name: Setup Python
         uses: actions/setup-python@v5
